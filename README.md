@@ -19,6 +19,8 @@ To get started with the game, follow these steps:
 **Linux/macOS:**
 1. Open the terminal.
 2. Clone the repository by running the following command:
+   `git clone https://github.com/aqueel-code/pet-breeding-game.git`
+   or
    `git clone https://gitfront.io/r/aqueel-code/ckgbtDp8rivy/pet-breeding-game.git`
 3. Compile the source code by running the following command:
    `gcc main.c implementation.c -o pet_game`
@@ -29,6 +31,8 @@ To get started with the game, follow these steps:
 1. Install Git Bash from the official website: https://gitforwindows.org/
 2. Open Git Bash.
 3. Clone the repository by running the following command:
+   `git clone https://github.com/aqueel-code/pet-breeding-game.git`
+   or
    `git clone https://gitfront.io/r/aqueel-code/ckgbtDp8rivy/pet-breeding-game.git`
 4. Compile the source code by running the following command:
    `gcc main.c implementation.c -o pet_game`
@@ -45,7 +49,7 @@ To get started with the game, follow these steps:
 
 ## Contributions
 
-Contributions to the Pet Breeding and Simulation Game are welcome! If you find any bugs, have suggestions for improvements, or want to add new features, feel free to ~~open an issue or submit a pull request~~ email me: aqueel.ifham@tuta.io.
+Contributions to the Pet Breeding and Simulation Game are welcome! If you find any bugs, have suggestions for improvements, or want to add new features, feel free to open an issue or submit a pull request or email me: aqueel.ifham@tuta.io.
 
 ## License
 
