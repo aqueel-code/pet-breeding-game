@@ -1,0 +1,6 @@
+1,Happy,:),EL>25,HL>50
+2,Sad,:(,EL<20,HL<20
+3,Crying,:'(,EL<10,HL<10
+4,Sleeping,:zz,EL<5,Not important
+5,Hungry,:-o,EL<20,Not important
+6,Wants a game,<:0)>,EL>40 or HL<30
