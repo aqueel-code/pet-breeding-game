@@ -518,8 +518,18 @@ const char* getPetMoodTextEmoji(int energy, int happiness) {
     }
 }
 
+void about() {
+    printf("This programme was developed by Mohamed Ifham Aqueel Imthiyas.\n");
+    printf("Contact info: 200504123@ogrenci.harran.edu.tr\n");
+    printf("Version: 1.0.0-b.1 Beta\n");
+    printf("Release date: 15.06.2023\n");
+    printf("Objective: A Pet Breeding and Simulation Game implemented in C. Interact with virtual pets, meet their needs, and monitor their energy and happiness levels.\n");
+    printf("\n");
+}
+
 void showMenu() {
     printf(".:: Pet Breeding and Simulation Game ::.\n");
+    printf("\n");
     printf("Available Pets:\n");
     printf("------------------------------------------------------------------\n");
     printf("| Index | Type     | Name  | Energy | Happiness |       Mood     |\n");
@@ -544,6 +554,7 @@ void showMenu() {
     printf("9. Put to sleep\n");
     printf("10. Reward pet\n");
     printf("11. Print emotions\n");
+    printf("12. About\n");
     printf("0. Exit\n");
     printf("\n");
     printf("Input your selection: ");
@@ -665,6 +676,9 @@ void executeAction(int option) {
         case 11:
             printEmotion();
             break;
+        case 12:
+            about();
+            break;            
         case 0:
             if (petDataModified) {
                 savePetData();
