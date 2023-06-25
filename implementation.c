@@ -5,15 +5,14 @@
 #include <stdbool.h>
 #include "interface.h"
 
-#define MAX_PETS 3
+#define MAX_PETS 10
 #define MAX_NAME_LENGTH 20
 #define MAX_MOOD_LENGTH 50
-#define MAX_NAME_LENGTH 20
 #define MAX_MOODS 10
 #define MAX_EMOTION_LENGTH 10
 #define MAX_CONDITION_LENGTH 20
-#define LOW_ENERGY_THRESHOLD 20
-#define LOW_HAPPINESS_THRESHOLD 30
+#define LOW_ENERGY_THRESHOLD 5
+#define LOW_HAPPINESS_THRESHOLD 5
 
 int gameRunning = 1;
 int timeToCheckEnergy = 1;
@@ -21,35 +20,17 @@ int timeToCheckHappiness = 1;
 
 bool petDataModified = false;
 
-struct Pet {
-    char type[20];
-    char name[MAX_NAME_LENGTH];
-    int energy;
-    int happiness;
-    char mood[MAX_MOOD_LENGTH];
-};
-
 struct Pet pets[MAX_PETS];
 int numPets = 0;
 
-void initialize() {
-    // Load pet data from file
+void initialize() { // Initialize the game
     loadPetData();
 }
 
-void cleanup() {
-    // Save pet data to file
-    if (petDataModified) {
-        savePetData();
-    } else {
-        remove("pet_data.txt");
-    }
-}
-
-void loadPetData() {
-    FILE* file = fopen("pet_data.txt", "r");
+void loadPetData() { // Load pet data from file
+    FILE* file = fopen("Pet_Data.txt", "r");
     if (file == NULL) {
-        printf("Error opening pet_data.txt file.\n");
+        printf("Error opening Pet_Data.txt file.\n");
         return;
     }
 
@@ -59,13 +40,13 @@ void loadPetData() {
     }
 
     if (fclose(file) != 0) {
-        printf("Error closing pet_data.txt file.\n");
+        printf("Error closing Pet_Data.txt file.\n");
     }
 }
 
 
-void savePetData() {
-    FILE *file = fopen("pet_data.txt", "w");
+void savePetData() { // Save pet data to file
+    FILE *file = fopen("Pet_Data.txt", "w");
     if (file == NULL) {
         printf("Error opening file.\n");
         return;
@@ -73,28 +54,36 @@ void savePetData() {
 
     for (int i = 0; i < numPets; i++) {
         fprintf(file, "%s,%s,%d,%d\n", pets[i].type, pets[i].name, pets[i].energy, pets[i].happiness);
+        char filename[50];
+        sprintf(filename, "Pet_%s.txt", pets[i].name); // Save pet data to pet’s name
+        FILE *petFile = fopen(filename, "w");
+        if (petFile == NULL) {
+            printf("Error opening file.\n");
+            return;
+        }
+        fprintf(petFile, "%s,%s,%d,%d\n", pets[i].type, pets[i].name, pets[i].energy, pets[i].happiness);
+        fclose(petFile);
     }
 
     if (fclose(file) != 0) {
-        printf("Error closing pet_data.txt file.\n");
+        printf("Error closing Pet_Data.txt file.\n");
     }
 }
 
-void savePetOutput(const char* output) {
-    FILE* file = fopen("pet_output.txt", "a");
+bool savePetOutput(const char* output) { //Save pet output data
+    FILE* file = fopen("Pet_Output.txt", "a");
     if (file == NULL) {
-        printf("Error opening pet_output.txt file.\n");
-        return;
+        return false;
     }
 
-    fprintf(file, "%s\n", output);
-
-    if (fclose(file) != 0) {
-        printf("Error closing pet_output.txt file.\n");
+    for (int i = 0; i < numPets; i++) {
+        fprintf(file, "%s,%s,%d,%d\n", pets[i].type, pets[i].name, pets[i].energy, pets[i].happiness);
     }
+
+    return fclose(file) == 0;
 }
 
-void addPet() {
+void addPet() { // Add a new pet
     if (numPets >= MAX_PETS) {
         printf("Maximum number of pets reached.\n");
         return;
@@ -111,13 +100,11 @@ void addPet() {
     fgets(name, sizeof(name), stdin);
     name[strcspn(name, "\n")] = '\0';
 
-    // Input validation
     if (strlen(type) == 0 || strlen(name) == 0) {
         printf("Invalid input. Type and name cannot be empty.\n");
         return;
     }
 
-    // Check if the pet name already exists
     for (int i = 0; i < numPets; i++) {
         if (strcmp(pets[i].name, name) == 0) {
             printf("A pet with the same name already exists.\n");
@@ -133,18 +120,19 @@ void addPet() {
     numPets++;
     petDataModified = true;
     printf("Pet added successfully.\n");
-    // Save the pet data to the file
     savePetData();
+    savePetOutput("New pet added.");
+    
 }
 
-void displayPets() {
+void displayPets() { // Display all pets
     printf("Available pets:\n");
     for (int i = 1; i <= numPets; i++) {
         printf("%d. %s - %s\n", i, pets[i-1].type, pets[i-1].name);
     }
 }
 
-void feedPet() {
+void feedPet() { // Feed a pet
     displayPets();
     int petIndex;
     printf("Select a pet to feed: ");
@@ -165,44 +153,30 @@ void feedPet() {
         }
 
         printf("Pet %s has been fed.\n", pets[petIndex].name);
-        savePetData(); // Save pet data after making changes
+        savePetData();
 
-        checkEnergyLevel(petIndex); // Check energy level after feeding
+        checkEnergyLevel(petIndex);
     } else {
         printf("Invalid pet selection.\n");
     }
 }
 
-void pet_update(int petIndex, const char* newName) {
+void pet_update(int petIndex, const char* newName) { // Update pet's name
     if (petIndex >= 1 && petIndex <= numPets) {
         strncpy(pets[petIndex - 1].name, newName, MAX_NAME_LENGTH);
         printf("Pet %s has been updated.\n", pets[petIndex - 1].name);
-        //calculatePetMood(&pets[petIndex - 1]);
-        // Calculate the pet's mood based on energy and happiness levels
-if (pets[petIndex - 1].energy > 25 && pets[petIndex - 1].happiness > 50) {
-    strcpy(pets[petIndex - 1].mood, "happy   :)");
-} else if (pets[petIndex - 1].energy < 20 && pets[petIndex - 1].happiness < 20) {
-    strcpy(pets[petIndex - 1].mood, "sad     :(");
-} else if (pets[petIndex - 1].energy < 10 && pets[petIndex - 1].happiness < 10) {
-    strcpy(pets[petIndex - 1].mood, "crying  :'(");
-} else if (pets[petIndex - 1].energy < 5) {
-    strcpy(pets[petIndex - 1].mood, "sleeping :zz");
-} else if (pets[petIndex - 1].energy < 20) {
-    strcpy(pets[petIndex - 1].mood, "hungry  :-o");
-} else if (pets[petIndex - 1].energy > 40 || pets[petIndex - 1].happiness < 30) {
-    strcpy(pets[petIndex - 1].mood, "wants a game <:0)");
-} else {
-    strcpy(pets[petIndex - 1].mood, "unknown");
-}
+        const char* mood = calculatePetMood(petIndex, pets);
 
-        savePetData(); // Save the pet data after updating the name
+        strncpy(pets[petIndex - 1].mood, mood, MAX_MOOD_LENGTH);
+
+        savePetData();
     } else {
         printf("Invalid pet selection.\n");
     }
 }
 
 
-void delete_pet(int petIndex) {
+void delete_pet(int petIndex) { // Delete a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -221,7 +195,7 @@ void delete_pet(int petIndex) {
     }
 }
 
-void give_water(int petIndex) {
+void give_water(int petIndex) { // Give water to a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -243,13 +217,13 @@ void give_water(int petIndex) {
     }
 }
 
-void play_games(int petIndex) {
+void play_games(int petIndex) { // Play games with a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
         if (pets[petIndex].energy < LOW_ENERGY_THRESHOLD) {
             printf("Pet's energy level is too low. Put the pet to sleep.\n");
-            // Prompt the user to put the pet to sleep or perform other actions
+
         } else {
             pets[petIndex].energy -= 15;
             pets[petIndex].happiness += 15;
@@ -271,7 +245,7 @@ void play_games(int petIndex) {
 }
 
 
-void clean_pet(int petIndex) {
+void clean_pet(int petIndex) { // Clean a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -293,7 +267,7 @@ void clean_pet(int petIndex) {
     }
 }
 
-void love_pet(int petIndex) {
+void love_pet(int petIndex) { // Show love to a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -310,7 +284,7 @@ void love_pet(int petIndex) {
     }
 }
 
-void put_to_sleep(int petIndex) {
+void put_to_sleep(int petIndex) { // Put a pet to sleep
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -327,7 +301,7 @@ void put_to_sleep(int petIndex) {
     }
 }
 
-void reward_pet(int petIndex) {
+void reward_pet(int petIndex) { // Reward a pet
     if (petIndex >= 1 && petIndex <= numPets) {
         petIndex--;
 
@@ -344,84 +318,70 @@ void reward_pet(int petIndex) {
     }
 }
 
-void handleLowEnergy(int petIndex) {
+void handleLowEnergy(int petIndex) { // Handle low energy level of a pet
     printf("Warning: Pet %s has low energy.\n", pets[petIndex].name);
     printf("What would you like to do?\n");
-    printf("1. Feed the pet\n");
-    printf("2. Give water to the pet\n");
-    printf("3. Put the pet to sleep\n");
-    //printf("4. Return to the main menu\n");
+    printf("1. Put the pet to sleep\n");
     printf("Enter your choice: ");
 
     int choice;
-    scanf("%d", &choice);
+    scanf("%d", &petIndex, &choice);
 
     switch (choice) {
         case 1:
-            feedPet(petIndex);
-            break;
-        case 2:
-            give_water(petIndex);
-            break;
-        case 3:
             put_to_sleep(petIndex);
+            savePetData(petIndex);
             break;
-/*      case 4:
-            showMenu();
-            break;
-*/
         default:
             printf("Invalid choice.\n");
             break;
     }
 }
 
-void handleLowHappiness(int petIndex) {
+void handleLowHappiness(int petIndex) { // Handle low happiness level of a pet
     printf("Warning: Pet %s is unhappy.\n", pets[petIndex].name);
     printf("What would you like to do?\n");
     printf("1. Play games with the pet\n");
     printf("2. Clean the pet\n");
-    printf("3. Show love and affection to the pet\n");
-    //printf("4. Return to the main menu\n");
+    printf("3. Show love to the pet\n");
     printf("Enter your choice: ");
 
     int choice;
-    scanf("%d", &choice);
+    scanf("%d", &petIndex, &choice);
 
     switch (choice) {
         case 1:
             play_games(petIndex);
+            savePetData(petIndex);
             break;
         case 2:
             clean_pet(petIndex);
+            savePetData(petIndex);
             break;
         case 3:
             love_pet(petIndex);
+            savePetData(petIndex);
             break;
-/*      case 4:
-            showMenu();
-            break;
-*/
         default:
             printf("Invalid choice.\n");
             break;
     }
 }
 
-void checkEnergyLevel(int petIndex) {
+void checkEnergyLevel(int petIndex) { // Check energy level of a pet
     if (pets[petIndex].energy < LOW_ENERGY_THRESHOLD) {
         handleLowEnergy(petIndex);
     }
 }
 
-void checkHappinessLevel(int petIndex) {
+void checkHappinessLevel(int petIndex) { // Check happiness level of a pet
     if (pets[petIndex].happiness < LOW_HAPPINESS_THRESHOLD) {
         handleLowHappiness(petIndex);
     }
 }
 
-void printEmotion() {
-    const char* emotionFile = "emotion.txt";  // Predefined file name
+void printEmotion() { // Print emotions of all pets
+    const char* emotionFile = "emotion.txt";
 
     FILE* file = fopen(emotionFile, "r");
     if (file == NULL) {
@@ -454,17 +414,17 @@ typedef struct {
     char happinessCondition[MAX_CONDITION_LENGTH];
 } Mood;
 
-Mood moods[MAX_MOODS];
+Mood moods[MAX_MOODS]; // Array to store mood data
 int numMoods = 0;
 
 void loadMoodsFromFile(const char* fileName) {
-    FILE* file = fopen(fileName, "r");
+    FILE* file = fopen(fileName, "r"); // Open the specified file in read mode
     if (file == NULL) {
         printf("Error opening file %s.\n", fileName);
         return;
     }
 
-    char line[100];
+    char line[100]; // Buffer to store each line read from the file
     while (fgets(line, sizeof(line), file) != NULL) {
         char name[MAX_NAME_LENGTH];
         char emotion[MAX_EMOTION_LENGTH];
@@ -489,15 +449,16 @@ void loadMoodsFromFile(const char* fileName) {
 
 int getPetMoodIndex(int petIndex) {
     for (int i = 0; i < numMoods; i++) {
-        Mood mood = moods[i];
+        Mood mood = moods[i]; // Get the mood at index i from the moods array
+        // Check if the pet's energy and happiness conditions satisfy the mood's conditions
         if ((strcmp(mood.energyCondition, "Not important") == 0 ||
              pets[petIndex].energy >= atoi(mood.energyCondition)) &&
             (strcmp(mood.happinessCondition, "Not important") == 0 ||
              pets[petIndex].happiness >= atoi(mood.happinessCondition))) {
-            return i;
+            return i; // Return the index of the matching mood
         }
     }
-    return -1;
+    return -1; // Return -1 if no matching mood is found
 }
 
 const char* getPetMoodTextEmoji(int energy, int happiness) {
@@ -518,27 +479,46 @@ const char* getPetMoodTextEmoji(int energy, int happiness) {
     }
 }
 
-void about() {
+const char* calculatePetMood(int petIndex, struct Pet* pets) {
+    if (pets[petIndex - 1].energy > 25 && pets[petIndex - 1].happiness > 50) {
+        return "Happy :)";
+    } else if (pets[petIndex - 1].energy < 20 && pets[petIndex - 1].happiness < 20) {
+        return "Sad :(";
+    } else if (pets[petIndex - 1].energy < 10 && pets[petIndex - 1].happiness < 10) {
+        return "Crying :'(";
+    } else if (pets[petIndex - 1].energy < 5) {
+        return "Sleeping :zz";
+    } else if (pets[petIndex - 1].energy < 20) {
+        return "Hungry :-o";
+    } else if (pets[petIndex - 1].energy > 40 || pets[petIndex - 1].happiness < 30) {
+        return "Wants a game <:0)";
+    } else {
+        return "Unknown";
+    }
+}
+
+void about() { //Information about me and the game
     printf("This programme was developed by Mohamed Ifham Aqueel Imthiyas.\n");
     printf("Contact info: 200504123@ogrenci.harran.edu.tr\n");
-    printf("Version: 1.0.0-b.1 Beta\n");
-    printf("Release date: 15.06.2023\n");
+    printf("Version: 1.0.0-a.1 Alfa\n");
+    printf("Release date: 19.06.2023\n");
     printf("Objective: A Pet Breeding and Simulation Game implemented in C. Interact with virtual pets, meet their needs, and monitor their energy and happiness levels.\n");
     printf("\n");
 }
 
-void showMenu() {
+void showMenu(int petIndex) { // Display the menu
     printf(".:: Pet Breeding and Simulation Game ::.\n");
     printf("\n");
     printf("Available Pets:\n");
-    printf("------------------------------------------------------------------\n");
-    printf("| Index | Type     | Name  | Energy | Happiness |       Mood     |\n");
-    printf("------------------------------------------------------------------\n");
-    
+    printf("-----------------------------------------------------------------------\n");
+    printf("| Index | Type     | Name  | Energy | Happiness |          Mood       |\n");
+    printf("-----------------------------------------------------------------------\n");
+
     for (int i = 0; i < numPets; i++) {
-        printf("|   %d   | %-8s | %-5s |   %d   |      %d   | %-14s |\n",
-               i + 1, pets[i].type, pets[i].name, pets[i].energy, pets[i].happiness, pets[i].mood);
-        printf("------------------------------------------------------------------\n");
+        const char* petMood = calculatePetMood(i + 1, pets);  // Calculate the mood for each pet
+        printf("|   %d   | %-8s | %-5s |   %d   |      %d   | %-18s |\n",
+               i + 1, pets[i].type, pets[i].name, pets[i].energy, pets[i].happiness, petMood);
+        printf("-----------------------------------------------------------------------\n");
     }
 
     printf("\n");
@@ -560,48 +540,40 @@ void showMenu() {
     printf("Input your selection: ");
 }
 
-void executeAction(int option) {
+void executeAction(int option) { // Execute an action based on user input
     int petDataModified = 0;
     fflush(stdin);
     int petIndex;
 
     switch (option) {
         case 1:
-            // Code to add a pet
-            addPet();
+            addPet(); // Add a new pet
             petDataModified = 1;
             break;
-        case 2:
-            // Code to update pet information
+        case 2: // Update pet's name
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
 
             if (petIndex >= 1 && petIndex <= numPets) {
-                // Clear the input buffer
                 fflush(stdin);
-
                 char name[MAX_NAME_LENGTH];
                 printf("Enter the new name of the pet: ");
                 fgets(name, sizeof(name), stdin);
                 name[strcspn(name, "\n")] = '\0';
-
                 pet_update(petIndex, name);
                 printf("Pet information updated successfully.\n");
-
-                savePetData(); // Save the pet data after updating the name
+                savePetData();
             } else {
                 printf("Invalid pet selection.\n");
             }
             break;
-        case 3:
-            // Code to delete a pet
+        case 3: // Delete a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             delete_pet(petIndex);
             printf("Pet deleted successfully.\n");
             break;
-        case 4:
-            // Code to feed a pet
+        case 4: // Feed a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].energy < 5) {
@@ -611,8 +583,7 @@ void executeAction(int option) {
                 printf("Pet fed successfully.\n");
             }
             break;
-        case 5:
-            // Code to give water to a pet
+        case 5: // Give water to a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].energy < 5) {
@@ -622,8 +593,7 @@ void executeAction(int option) {
                 printf("Water given to pet.\n");
             }
             break;
-        case 6:
-            // Code to play games with a pet
+        case 6: // Play games with a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].energy < 5) {
@@ -633,8 +603,7 @@ void executeAction(int option) {
                 printf("Played games with pet.\n");
             }
             break;
-        case 7:
-            // Code to clean a pet
+        case 7: // Clean a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].energy < 5) {
@@ -644,8 +613,7 @@ void executeAction(int option) {
                 printf("Pet cleaned successfully.\n");
             }
             break;
-        case 8:
-            // Code to love a pet
+        case 8: // Love a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].happiness < 5) {
@@ -655,15 +623,13 @@ void executeAction(int option) {
                 printf("Pet loved.\n");
             }
             break;
-        case 9:
-            // Code to put a pet to sleep
+        case 9: // Put a pet to sleep
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             put_to_sleep(petIndex);
             printf("Pet put to sleep.\n");
             break;
-        case 10:
-            // Code to reward a pet
+        case 10: // Reward a pet
             printf("Enter the index of the pet: ");
             scanf("%d", &petIndex);
             if (pets[petIndex - 1].happiness < 5) {
@@ -673,19 +639,17 @@ void executeAction(int option) {
                 printf("Pet rewarded.\n");
             }
             break;
-        case 11:
+        case 11: // Print pet's emotion
             printEmotion();
             break;
-        case 12:
+        case 12: // Display about information
             about();
             break;            
-        case 0:
+        case 0: // Exit the game
             if (petDataModified) {
                 savePetData();
-                cleanup();
                 printf("Pet data saved successfully. Exiting The Game...\n");
             } else {
-                cleanup();
                 printf("Exiting The Game...\n");
             }
             break;

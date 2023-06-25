@@ -7,9 +7,10 @@
 int main() {
     loadMoodsFromFile("emotion.txt");
     int option;
+    int petIndex;
 
     do {
-        showMenu();
+        showMenu(petIndex);
         scanf("%d", &option);
         getchar();
 
@@ -17,14 +18,14 @@ int main() {
 
         if (option != 0) {
             while (gameRunning) {
-                showMenu();
+                showMenu(petIndex);
                 scanf("%d", &option);
                 getchar();
 
                 executeAction(option);
 
                 if (option == 0) {
-                    break;  // Exit the inner loop when option is 0
+                    break;
                 }
 
                 if (timeToCheckEnergy) {
