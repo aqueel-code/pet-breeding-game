@@ -500,7 +500,7 @@ const char* calculatePetMood(int petIndex, struct Pet* pets) {
 void about() { //Information about me and the game
     printf("This programme was developed by Mohamed Ifham Aqueel Imthiyas.\n");
     printf("Contact info: 200504123@ogrenci.harran.edu.tr\n");
-    printf("Version: 1.0.0-a.1 Alfa\n");
+    printf("Version: 1.0.0-b.1 Beta\n");
     printf("Release date: 19.06.2023\n");
     printf("Objective: A Pet Breeding and Simulation Game implemented in C. Interact with virtual pets, meet their needs, and monitor their energy and happiness levels.\n");
     printf("\n");
